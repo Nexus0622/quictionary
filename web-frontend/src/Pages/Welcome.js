@@ -14,6 +14,8 @@ export default function Welcome()
     const [desPass, setDesPass] = useState("");
     const [confirm, setConfirm] = useState("");
 
+    const url = 'http://localhost:5000/api'
+
     function openLogin()
     {
         setLogVis(true);
@@ -42,21 +44,84 @@ export default function Welcome()
         setPass("");
     }
 
-    function logUser(e)
+    async function logUser(e)
     {
         e.preventDefault();
-        console.log(user);
-        console.log(pass);
+        let loginObj = JSON.stringify({username:user,
+                        password: pass})
+        try
+        {
+            let response = await fetch(url + '/login', 
+                                        {method: 'POST', 
+                                        body:loginObj, 
+                                        headers:{'Content-Type':'application/json'}})
+            let text = await response.text();
+            console.log(text);
+            let res = JSON.parse(text);
+
+            if(res.error != "")
+            {
+                setUser("");
+                setPass("");
+                console.log(res.error);
+            }   
+            else
+            {
+                console.log(res.username);
+                setUser("");
+                setPass("");
+            }
+
+        }
+        catch(error)
+        {
+            console.error(error.toString())
+        }
+        
     }
 
-    function registerUser(e)
+    async function registerUser(e)
     {
-        console.log("This is working 2.0");
+        if (desPass != confirm)
+        {
+            console.error("Passwords do not match");
+        }
+
         e.preventDefault();
-        console.log(newUser);
-        console.log(email);
-        console.log(desPass);
-        console.log(confirm);
+
+        let registerObj = JSON.stringify({
+            username: newUser,
+            email: email,
+            password: desPass
+        })
+        try
+        {
+            let response = await fetch(url + '/register', 
+                                        {method: 'POST', 
+                                        body:registerObj, 
+                                        headers:{'Content-Type':'application/json'}})
+            console.log(response)
+            let text = await response.text();
+            console.log(text);
+            let res = JSON.parse(text);
+
+            if (res.error != "")
+            {
+                setNewUser("");
+                setEmail("");
+                setConfirm("");
+                setDesPass("");
+                console.log(res.error)
+            }
+            else
+            {
+                console.log(res)
+            }
+        }
+        catch(error)
+        {
+            console.error(error.toString());
+        }
     }
 
     return(
@@ -75,9 +140,9 @@ export default function Welcome()
                 <Modal.Body>
                     <div style={{flexDirection:"row"}}>
                         <form>
-                            <input type="text" placeholder="Username"  onChange={(e) => setUser(e.target.value)}/>
+                            <input type="text" placeholder="Username" value={user} onChange={(e) => setUser(e.target.value)}/>
                             <br/>
-                            <input type="text" placeholder="Password"  onChange={(e) => setPass(e.target.value)}/>
+                            <input type="text" placeholder="Password" value={pass} onChange={(e) => setPass(e.target.value)}/>
                         </form>
                         <Button onClick={logUser}>
                             Log in
@@ -89,10 +154,10 @@ export default function Welcome()
                 <Modal.Body>
                     <div>
                         <form>
-                            <input type="text" placeholder="Desired Username"  onChange={(e) => setNewUser(e.target.value)}/>
-                            <input type="text" placeholder="Email"  onChange={(e) => setEmail(e.target.value)}/>
-                            <input type="text" placeholder="Password"  onChange={(e) => setDesPass(e.target.value)}/>
-                            <input type="text" placeholder="Confirm Password"  onChange={(e) => setConfirm(e.target.value)}/>
+                            <input type="text" placeholder="Desired Username" value={newUser} onChange={(e) => setNewUser(e.target.value)}/>
+                            <input type="text" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)}/>
+                            <input type="text" placeholder="Password" value={desPass} onChange={(e) => setDesPass(e.target.value)}/>
+                            <input type="text" placeholder="Confirm Password" value={confirm} onChange={(e) => setConfirm(e.target.value)}/>
                         </form>
                         <Button onClick={registerUser}>
                             Register

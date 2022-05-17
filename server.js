@@ -37,7 +37,7 @@ app.post('/api/register', async (req, res) =>
 
   if (usernameTaken != null)
   {
-    return res.status(500).json({error:"Username already in use."});
+    return res.status(500).json({error:"Username already in use.", user:usernameTaken});
   }
 
   if (emailTaken != null)
@@ -53,5 +53,26 @@ app.post('/api/register', async (req, res) =>
 
   db.collection(userCol).insertOne(user);
   res.json(emptyErr)
+})
+
+app.post('/api/login', async (req, res) => {
+  const {username, password} = req.body;
+  let user = await db.collection(userCol).findOne({username:username});
+
+  if(user == null)
+  {
+    return res.status(500).json({error: 'User not found'})
+  }
+
+  if(password != user.password)
+  {
+    return res.status(500).json({error: 'Passwords do not match'})
+  }
+
+  delete user.password
+  user.error = ""
+
+  res.status(200).json(user)
+
 })
 app.listen(5000)
